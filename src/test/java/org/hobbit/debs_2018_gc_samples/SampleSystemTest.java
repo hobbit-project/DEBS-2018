@@ -68,9 +68,9 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
         evalStorage = new EvalStorage();
         evalModule = new EvalModuleDockerBuilder(new PullBasedDockersBuilder(evalModuleImageName)).build();
 
-        //Here you can switch between pure java code (new SystemAdapter())
-        //systemAdapter = new SystemAdapter();
-        systemAdapter = systemAdapterBuilder.build();
+        //Here you can switch between pure java code (new SystemAdapter()) or dockerized version (systemAdapterBuilder.build())
+        systemAdapter = new SystemAdapter();
+        //systemAdapter = systemAdapterBuilder.build();
     }
 
     @Test
