@@ -34,7 +34,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 6) To upload your image of the system into the HOBBIT platform please follow the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image)] and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)).
 
 ## Benchmark-sensitive information
-Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark: 
+Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark (to be announced later): 
 1) URI of the benchmarkAPI to be placed into your system.ttl file
 2) URIs of input parameters (like QueryType), which will be send to benchmarking system from the benchmark. 
 
