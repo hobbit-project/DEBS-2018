@@ -39,6 +39,4 @@ Please check this section later to find the latest information about:
 2) input parameters (like QueryType), which will be send to benchmarking system from the benchmark. 
 
 ## FAQ
-If `checkHealth()` methods hangs up, then search for the errors (via Ctrl+F) in console output. Components execution is parallel, so errors may be shown not in the bottom ot the output.
-
 Feel free to ask any questions regading the DEBS Grand Challenge 2018 under the [Issues](https://github.com/hobbit-project/DEBS-GC-2018/issues) tab.
