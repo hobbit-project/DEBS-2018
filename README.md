@@ -13,7 +13,7 @@ The reposity containts the following components:
 - Sample system
 - Sample system test
 
-The DEBS GC 2018 benchmark will send a stream of tuples to the benchmarking system and expects responces (predictions) from the system to be ranked by [defined KPIs](www.cs.otago.ac.nz/debs2018/calls/gc.html). Each next data tuple for each particular ship can be received by the system only if the responce (prediction) for the previous tuple for this ship was sent from the system to the evaluation storage. Evaluation storage acknowledges the data generator, simplified versions of both components are included into 
+The DEBS GC 2018 benchmark will send a stream of tuples to the benchmarking system and expects responces (predictions) from the system to be ranked by [defined KPIs](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). Each next data tuple for each particular ship can be received by the system only if the responce (prediction) for the previous tuple for this ship was sent from the system to the evaluation storage. Evaluation storage acknowledges the data generator, simplified versions of both components are included into 
 the repository to be used during local debugging. Any other components (benchmark controller, task generator, evaluation module) required for local debugging will be automatically downloaded as docker images by the docker software. You may provide training dataset  to the data generator just putting .csv file under the data folder and modifying path to it in DataGenerator.java. 
 
 The online DEBS GC 2018 benchmark will use another implementations (docker images) of Data generator and Evaluation storage, where acknowledgements will be encrypted. 
