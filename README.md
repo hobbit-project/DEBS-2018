@@ -40,4 +40,4 @@ Please check this section later to find the latest sensitive information about t
 ## FAQ
 Feel free to ask any questions regading the DEBS Grand Challenge 2018 under the [Issues](https://github.com/hobbit-project/DEBS-GC-2018/issues) tab.
 
-Please [leave a request](https://github.com/hobbit-project/DEBS-GC-2018/issues/5) if you need a python-based sample system example.
+Please [leave a request](https://github.com/hobbit-project/DEBS-GC-2018/issues/5) if you need a python-based example of the sample system.
