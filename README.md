@@ -1,6 +1,6 @@
 # DEBS Grand Challenge 2018
 
-Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the DEBS Grand Challenge 2018. 
+Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the [DEBS Grand Challenge 2018](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). 
 
 The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk-example) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
 The benchmarking system can be tested as pure java code or/and being packed (automatically, by demand) into docker image. 
@@ -30,7 +30,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 3) Run the `checkHealth()` method from the `SampleSystemTest.java` to test/debug your system as pure java code.
 3) Once your system correctly tested as pure java code you may test it being packed into docker container. To build docker image you for the system you have to configure values in the `SamplesDockersBuilder.java`, package your code into jar file (`mvn package -DskipTests=true`) and execute the `buildImages()` from the `SampleSystemTest.java`. Image building is automatic, but  is on-demand, i.e. you have to check the actuality and rebuild images (inc. rebuilding jar file) by your own.
 3) Run the `checkHealthDockerized()` method from the `SampleSystemTest.java` to test/debug your system as docker container. All internal logs from containers will be provided. You may skip logs output from other components via `skipLogsReadingProperty()`.
-5) Once you have tested docker image if your system you may it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image)] and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)).
+5) Once you have tested docker image if your system you may it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)).
 
 ## Benchmark-sensitive information
 Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark (to be announced later): 
