@@ -1,6 +1,6 @@
 package org.hobbit.debs_2018_gc_samples;
 
-import org.hobbit.sdk.docker.builders.common.DynamicDockerFileBuilder;
+import org.hobbit.sdk.docker.builders.DynamicDockerFileBuilder;
 
 
 /**
@@ -8,7 +8,6 @@ import org.hobbit.sdk.docker.builders.common.DynamicDockerFileBuilder;
  */
 
 public class SampleDockersBuilder extends DynamicDockerFileBuilder {
-    //public static String ACKNOWLEDGE_QUEUE_NAME_KEY = "hobbit.sml2.ack";
     public static String GIT_REPO_PATH = "git.project-hobbit.eu:4567/yourname/";
     //public static String GIT_REPO_PATH = "";
     public static String PROJECT_NAME = "yourprojectname/";

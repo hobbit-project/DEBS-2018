@@ -2,7 +2,6 @@ package org.hobbit.debs_2018_gc_samples;
 
 import org.hobbit.core.components.Component;
 import org.hobbit.debs_2018_gc_samples.Benchmark.DataGenerator;
-import org.hobbit.debs_2018_gc_samples.Benchmark.EvalStorage;
 import org.hobbit.debs_2018_gc_samples.System.SystemAdapter;
 import org.hobbit.sdk.ComponentsExecutor;
 import org.hobbit.sdk.EnvironmentVariablesWrapper;
@@ -10,7 +9,7 @@ import org.hobbit.sdk.JenaKeyValue;
 import org.hobbit.sdk.docker.AbstractDockerizer;
 import org.hobbit.sdk.docker.RabbitMqDockerizer;
 import org.hobbit.sdk.docker.builders.*;
-import org.hobbit.sdk.docker.builders.common.PullBasedDockersBuilder;
+import org.hobbit.sdk.docker.builders.hobbit.*;
 import org.hobbit.sdk.utils.CommandQueueListener;
 import org.hobbit.sdk.utils.commandreactions.MultipleCommandsReaction;
 import org.junit.Assert;
@@ -42,12 +41,6 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
     SystemAdapterDockerBuilder systemAdapterBuilder;
 
 
-    Component benchmarkController;
-    Component dataGen;
-    Component taskGen;
-    Component evalStorage;
-    Component evalModule;
-    Component systemAdapter;
 
     public void init(Boolean useCachedImages) throws Exception {
 
@@ -58,34 +51,43 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
         setupGeneratorEnvironmentVariables(1,1);
         setupSystemEnvironmentVariables(SYSTEM_URI, createSystemParameters());
 
+        systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages));
 
-        systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages).init());
-
-        benchmarkController = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName)).build();
-        dataGen = new DataGenerator();
-        taskGen = new TaskGenDockerBuilder(new PullBasedDockersBuilder(taskGeneratorImageName)).build();
-
-        evalStorage = new EvalStorage();
-        evalModule = new EvalModuleDockerBuilder(new PullBasedDockersBuilder(evalModuleImageName)).build();
-
-        //Here you can switch between pure java code (new SystemAdapter()) or dockerized version (systemAdapterBuilder.build())
-        systemAdapter = new SystemAdapter();
-        //systemAdapter = systemAdapterBuilder.build();
     }
 
     @Test
     @Ignore
     public void buildImages() throws Exception {
         init(false);
-        ((AbstractDockerizer)systemAdapter).prepareImage();
+        systemAdapterBuilder.build().prepareImage();
     }
 
     @Test
     public void checkHealth() throws Exception {
+        checkHealth(false);
+    }
+
+    @Test
+    public void checkHealthDockerized() throws Exception {
+        checkHealth(true);
+    }
+
+    private void checkHealth(boolean dockerized) throws Exception {
 
         Boolean useCachedImages = true;
 
         init(useCachedImages);
+
+        Boolean skipLogsReading = false;
+        Component benchmarkController = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading)).build();
+        Component dataGen = new DataGenerator();
+        Component taskGen = new TaskGenDockerBuilder(new PullBasedDockersBuilder(taskGeneratorImageName).skipLogsReading(skipLogsReading)).build();
+        Component evalStorage = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading)).build();
+        Component evalModule = new EvalModuleDockerBuilder(new PullBasedDockersBuilder(evalModuleImageName).skipLogsReading(skipLogsReading)).build();
+
+        Component systemAdapter = new SystemAdapter();
+        if(dockerized)
+            systemAdapter = systemAdapterBuilder.build();
 
         commandQueueListener = new CommandQueueListener();
         componentsExecutor = new ComponentsExecutor(commandQueueListener, environmentVariables);
@@ -109,14 +111,11 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
         componentsExecutor.submit(systemAdapter, systemAdapterBuilder.getImageName());
 
         commandQueueListener.waitForTermination();
-        commandQueueListener.terminate();
-        componentsExecutor.shutdown();
 
         rabbitMqDockerizer.stop();
 
         Assert.assertFalse(componentsExecutor.anyExceptions());
     }
-
 
 
     public JenaKeyValue createBenchmarkParameters(){
