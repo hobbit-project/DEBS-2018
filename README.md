@@ -18,11 +18,13 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 
 # Usage
 ## Before you start
-1) Make sure that docker (v17 and later) is installed (or install it by `sudo curl -sSL https://get.docker.com/ | sh`)
-2) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven`)
-3) Clone this repository (`https://github.com/hobbit-project/DEBS-GC-2018.git`)
-4) Open the cloned repository in any IDE you like. 
-5) Make sure that hobbit-java-sdk dependency (declared in [pom.xml](https://github.com/hobbit-project/java-sdk-example/blob/master/pom.xml)) is installed into your local maven repository (or install it by executing the `mvn validate` command)
+1) Make sure that Oracle Java 1.8 (or higher) is installed (check by the `java -version`). Or install it by the `sudo add-apt-repository ppa:webupd8team/java && sudo apt-get update && sudo apt-get install oracle-java8-installer -y`.
+2) Make sure that docker (v17 and later) is installed (or install it by `sudo curl -sSL https://get.docker.com/ | sh`)
+3) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven`)
+4) Clone this repository (`https://github.com/hobbit-project/DEBS-GC-2018.git`)
+5) Add the `127.0.0.1 rabbit` line to `/etc/hosts` (Linux) or `C:\Windows\System32\drivers\etc` (Windows)
+6) Open the cloned repository in any IDE you like. 
+7) Make sure that hobbit-java-sdk dependency (declared in [pom.xml](https://github.com/hobbit-project/java-sdk-example/blob/master/pom.xml)) is installed into your local maven repository (or install it by executing the `mvn validate` command)
 
 ## How to create a system for existing benchmark
 1) Please find the basic HOBBIT-compatible system implementation in `SampleSystem.java`. You may extend it with the logic of your future system. More details about the design of HOBBIT-compatible system adapters can be found [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter-in-Java) and [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter). 
