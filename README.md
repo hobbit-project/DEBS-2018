@@ -2,7 +2,7 @@
 
 Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the [DEBS Grand Challenge 2018](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). 
 
-The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk-example) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
+The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
 The benchmarking system can be tested as pure java code or/and being packed (automatically, by demand) into docker image. 
 Finally the docker image of the system may be uploaded into the [HOBBIT online platform](http://master.project-hobbit.eu) (as described [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and executed there under the online DEBS GC 2018 benchmark, which will be used for the challenge.
 
