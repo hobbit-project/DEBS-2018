@@ -20,7 +20,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 ## Before you start
 1) Make sure that Oracle Java 1.8 (or higher) is installed (check by the `java -version`). Or install it by the `sudo add-apt-repository ppa:webupd8team/java && sudo apt-get update && sudo apt-get install oracle-java8-installer -y`.
 2) Make sure that docker (v17 and later) is installed (or install it by `sudo curl -sSL https://get.docker.com/ | sh`)
-3) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven`)
+3) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven -y`)
 4) Add the `127.0.0.1 rabbit` line to `/etc/hosts` (Linux) or `C:\Windows\System32\drivers\etc\hosts` (Windows)
 5) Clone this repository (`https://github.com/hobbit-project/DEBS-GC-2018.git`)
 6) Open the cloned repository in any IDE you like. 
