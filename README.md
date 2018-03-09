@@ -37,7 +37,9 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 ## Benchmark-sensitive information
 Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark (to be announced later): 
 1) URI of the benchmarkAPI to be placed into your system.ttl file
-2) URIs of input parameters (like QueryType), which will be send to benchmarking system from the benchmark. 
+
+## News
+9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into it. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
 
 ## FAQ
 Feel free to ask any questions regading the DEBS Grand Challenge 2018 under the [Issues](https://github.com/hobbit-project/DEBS-GC-2018/issues) tab.
