@@ -2,7 +2,7 @@
 
 Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the [DEBS Grand Challenge 2018](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). 
 
-The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk-example) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
+The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
 The benchmarking system can be tested as pure java code or/and being packed (automatically, by demand) into docker image. 
 Finally the docker image of the system may be uploaded into the [HOBBIT online platform](http://master.project-hobbit.eu) (as described [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and executed there under the online DEBS GC 2018 benchmark, which will be used for the challenge.
 
@@ -18,14 +18,16 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 
 # Usage
 ## Before you start
-1) Make sure that docker (v17 and later) is installed (or install it by `sudo curl -sSL https://get.docker.com/ | sh`)
-2) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven`)
-3) Clone this repository (`https://github.com/hobbit-project/DEBS-GC-2018.git`)
-4) Open the cloned repository in any IDE you like. 
-5) Make sure that hobbit-java-sdk dependency (declared in [pom.xml](https://github.com/hobbit-project/java-sdk-example/blob/master/pom.xml)) is installed into your local maven repository (or install it by executing the `mvn validate` command)
+1) Make sure that Oracle Java 1.8 (or higher) is installed (check by the `java -version`). Or install it by the `sudo add-apt-repository ppa:webupd8team/java && sudo apt-get update && sudo apt-get install oracle-java8-installer -y`.
+2) Make sure that docker (v17 and later) is installed (or install it by `sudo curl -sSL https://get.docker.com/ | sh`)
+3) Make sure that maven (v3 and later) is installed (or install it by `sudo apt-get install maven -y`)
+4) Add the `127.0.0.1 rabbit` line to `/etc/hosts` (Linux) or `C:\Windows\System32\drivers\etc\hosts` (Windows)
+5) Clone this repository (`https://github.com/hobbit-project/DEBS-GC-2018.git`)
+6) Open the cloned repository in any IDE you like. 
+7) Make sure that hobbit-java-sdk dependency (declared in [pom.xml](https://github.com/hobbit-project/java-sdk-example/blob/master/pom.xml)) is installed into your local maven repository (or install it by executing the `mvn validate` command)
 
 ## How to create a system for existing benchmark
-1) Please find the basic HOBBIT-compatible system implementation in `SampleSystem.java`. You may extend it with the logic of your future system. More details about the design of HOBBIT-compatible system adapters can be found [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter-in-Java) and [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter). 
+1) Please find the basic HOBBIT-compatible system implementation in `SystemAdapter.java`. You may extend it with the logic of your future system. More details about the design of HOBBIT-compatible system adapters can be found [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter-in-Java) and [here](https://github.com/hobbit-project/platform/wiki/Develop-a-system-adapter). 
 2) Put the training data set under the data folder (if required) and modify path to it in `DataGenerator.java`. 
 3) Run the `checkHealth()` method from the `SampleSystemTest.java` to test/debug your system as pure java code.
 3) Once your system correctly tested as pure java code you may test it being packed into docker container. To build docker image you for the system you have to configure values in the `SamplesDockersBuilder.java`, package your code into jar file (`mvn package -DskipTests=true`) and execute the `buildImages()` from the `SampleSystemTest.java`. Image building is automatic, but  is on-demand, i.e. you have to check the actuality and rebuild images (inc. rebuilding jar file) by your own.
