@@ -11,10 +11,11 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hobbit.debs_2018_gc_samples.Benchmark.DataGenerator.CHARSET;
+import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.CHARSET;
+
 
 public class Utils {
-    private static final Logger logger = LoggerFactory.getLogger(DataGenerator.class);
+    public static Logger logger = LoggerFactory.getLogger(Utils.class);
 
     public static String[] readFile(Path filepath, int linesLimit) throws IOException {
         logger.debug("Reading "+filepath);
@@ -30,11 +31,11 @@ public class Utils {
         return lines.toArray(new String[0]);
     }
 
-    public static Map<String, List<DataPoint>> processLines(String[] lines) throws IOException, ParseException {
-        //for multiple threads sending
-        Map<String, List<DataPoint>> ret = new LinkedHashMap<>();
+    public static Map<String, List<List<DataPoint>>> getTripsPerShips(String[] lines) throws IOException, ParseException {
+        logger.debug("Processing {} lines", lines.length);
+        Map<String, List<List<DataPoint>>> ret = new LinkedHashMap<>();
 
-        Map<String, Map> uniqueDeptsPerShip = new HashMap<>();
+        Map<String, List<String>> destsPerShip = new HashMap<>();
 
         String headLine = lines[0].replace("\uFEFF","").toLowerCase();
         String[] separators = new String[]{ "\t", ";", "," };
@@ -46,15 +47,11 @@ public class Utils {
         }
 
         List<String> headings = Arrays.asList(splitted);
-
         String separator = separators[sepIndex];
 
-//        for(int i=0; i<headings.length; i++)
-//            headings[i]=headings[i].replace("_","");
-
-
-        logger.debug("Processing {} lines", lines.length);
-
+        Map<String,String> prevShipDepName= new HashMap<>();
+        int tuplesCount=0;
+        int tripsCount=0;
         for(int i=1; i<lines.length; i++){
             try {
                 DataPoint point = new DataPoint(lines[i], headings, separator);
@@ -62,30 +59,47 @@ public class Utils {
                 String shipId = point.getValue("ship_id").toString();
                 //String shipId = point.getValue("vessel_id").toString();
 
-                List<DataPoint> shipPoints = new ArrayList<DataPoint>();
+                List<List<DataPoint>> shipTrips = new ArrayList<List<DataPoint>>();
                 if (ret.containsKey(shipId))
-                    shipPoints = ret.get(shipId);
-                shipPoints.add(point);
-                ret.put(shipId, shipPoints);
+                    shipTrips = ret.get(shipId);
 
-                Map shipDepartures = new HashMap();
-                if (uniqueDeptsPerShip.containsKey(shipId))
-                    shipDepartures = uniqueDeptsPerShip.get(shipId);
                 String depPortName = point.getValue("departure_port_name").toString();
-                shipDepartures.put(depPortName, null);
-                uniqueDeptsPerShip.put(shipId, shipDepartures);
+
+                List<DataPoint> lastTrip = new ArrayList<>();
+                if(!prevShipDepName.containsKey(shipId) || !prevShipDepName.get(shipId).equals(depPortName))
+                    shipTrips.add(lastTrip);
+                else
+                    lastTrip = shipTrips.get(shipTrips.size()-1);
+                lastTrip.add(point);
+                tuplesCount++;
+                ret.put(shipId, shipTrips);
+
+                List shipDepartures = new ArrayList();
+                if (destsPerShip.containsKey(shipId)) {
+                    shipDepartures = destsPerShip.get(shipId);
+                    if(!shipDepartures.get(shipDepartures.size()-1).equals(depPortName)) {
+                        shipDepartures.add(depPortName);
+                        tripsCount++;
+                    }
+                }else{
+                    shipDepartures.add(depPortName);
+                    tripsCount++;
+                }
+
+                //shipDepartures.put(depPortName, null);
+                destsPerShip.put(shipId, shipDepartures);
+                prevShipDepName.put(shipId, depPortName);
             }
             catch (Exception e){
                 logger.error(e.getMessage());
             }
 
         }
-        logger.debug("Processing finished");
+        logger.debug("Processing finished: {} tuples, {} trips", tuplesCount, tripsCount);
         return ret;
     }
 
-
     public static String encryptString(String string, String encryptionKey){
-        return string+"_"+encryptionKey;
+        return string;
     }
 }

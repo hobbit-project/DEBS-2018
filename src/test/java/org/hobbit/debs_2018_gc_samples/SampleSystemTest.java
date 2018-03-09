@@ -1,7 +1,7 @@
 package org.hobbit.debs_2018_gc_samples;
 
 import org.hobbit.core.components.Component;
-import org.hobbit.debs_2018_gc_samples.Benchmark.DataGenerator;
+import org.hobbit.debs_2018_gc_samples.Benchmark.TaskGenerator;
 import org.hobbit.debs_2018_gc_samples.System.SystemAdapter;
 import org.hobbit.sdk.ComponentsExecutor;
 import org.hobbit.sdk.EnvironmentVariablesWrapper;
@@ -17,8 +17,8 @@ import org.junit.Test;
 
 import java.util.Date;
 
-import static org.hobbit.sdk.CommonConstants.*;
-import static org.hobbit.debs_2018_gc_samples.SampleDockersBuilder.*;
+import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.*;
+import static org.hobbit.sdk.CommonConstants.EXPERIMENT_URI;
 
 /**
  * @author Pavel Smirnov
@@ -35,7 +35,6 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
     String dataGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/data-generator";
     String taskGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/task-generator";
     String evalStorageImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-storage";
-    String evalModuleImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-module";
 
     SystemAdapterDockerBuilder systemAdapterBuilder;
 
@@ -79,10 +78,9 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
 
         Boolean skipLogsReading = false;
         Component benchmarkController = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading)).build();
-        Component dataGen = new DataGenerator();
-        Component taskGen = new TaskGenDockerBuilder(new PullBasedDockersBuilder(taskGeneratorImageName).skipLogsReading(skipLogsReading)).build();
+        Component dataGen = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading)).build();
+        Component taskGen  = new TaskGenerator();
         Component evalStorage = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading)).build();
-        Component evalModule = new EvalModuleDockerBuilder(new PullBasedDockersBuilder(evalModuleImageName).skipLogsReading(skipLogsReading)).build();
 
         Component systemAdapter = new SystemAdapter();
         if(dockerized)
@@ -98,7 +96,6 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
                         .dataGenerator(dataGen).dataGeneratorImageName(dataGeneratorImageName)
                         .taskGenerator(taskGen).taskGeneratorImageName(taskGeneratorImageName)
                         .evalStorage(evalStorage).evalStorageImageName(evalStorageImageName)
-                        .evalModule(evalModule).evalModuleImageName(evalModuleImageName)
                         .systemContainerId(systemAdapterBuilder.getImageName())
         );
 
@@ -117,17 +114,22 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
     }
 
 
-    public JenaKeyValue createBenchmarkParameters(){
+    private static int QUERY_TYPE = 2;
+
+    public static JenaKeyValue createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        //kv.setValue(GENERATOR_LIMIT_KEY, 123);
+        kv.setValue(GENERATOR_LIMIT, 72);
+        kv.setValue(GENERATOR_TIMEOUT, 60);
+        kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv;
     }
 
-    public JenaKeyValue createSystemParameters(){
+    public static JenaKeyValue createSystemParameters(){
         JenaKeyValue kv = new JenaKeyValue();
-        kv.setValue(SYSTEM_URI+"systemParam1", 123);
+        kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv;
     }
+
 
 
 }
