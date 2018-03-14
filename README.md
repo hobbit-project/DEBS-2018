@@ -51,7 +51,7 @@ For your system you have to modify the following:
 - ImageName: the url at which your docker image was uploaded (pushed).
 
 ## Benchmark-sensitive information
-1) BenchmarkAPI (value of `hobbit:implementsAPI` in your system.ttl file): <http://project-hobbit.eu/sml-benchmark-v2/API>
+1) BenchmarkAPI (in the line `hobbit:implementsAPI <BenchmarkAPI>;` in the system.ttl file): http://project-hobbit.eu/sml-benchmark-v2/API
 
 ## News
 14 Mar 2018: The Benchmark is available in the online Platform. Please find the benchmark-sernsitive information and helpful instructions above. 
