@@ -127,6 +127,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
             return "";
         };
 
+
+        initData();
     }
 
     private void initData() throws Exception {
@@ -156,8 +158,6 @@ public class TaskGenerator extends AbstractTaskGenerator {
             return;
 
         gerenationFinished = true;
-
-        initData();
 
         startTimer();
 
