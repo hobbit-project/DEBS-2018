@@ -55,6 +55,7 @@ For your system you have to modify the following:
 
 ## News
 14 Mar 2018: The Benchmark is available in the online Platform. Please find the benchmark-sernsitive information and helpful instructions below. 
+
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
 
 ## FAQ
