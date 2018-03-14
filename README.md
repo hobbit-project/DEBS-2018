@@ -43,18 +43,23 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 6. Push your image to remote gitlab by the docker push <imageUri>.
 7. Put the modified benchmark.ttl into you project at GitLab (check whether ImageName fits the URI of the image you have just pushed).
 8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. GUI will apply the updated System.ttl within 30-60 seconds after it has been changed.
+  
+## How to register for the online challenge
+1. Once your system works well in the online platform you may register to the challenges (the training and final one).
+2. Systems registered for the `DEBS Grand Challenge 2018 Training phase` will be executed periodically (till the mid of May) over as some part of unseen data. The results  will be publicly available at the .
+3. Systems registered for the `DEBS Grand Challenge 2018 Final Execution` will be executed once (after the mid of May) over the rest part of unseen data. The results announcement as well as winner award will be held during the DEBS Conference by 25-29 of June.
 
+## Benchmark-sensitive information
 Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/system.ttl). 
 For your system you have to modify the following:
 - System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
 - Label and Comment - will be displayed in GUI
 - ImageName: the url at which your docker image was uploaded (pushed).
 
-## Benchmark-sensitive information
-1) BenchmarkAPI (in the line `hobbit:implementsAPI <BenchmarkAPI>;` in the system.ttl file): http://project-hobbit.eu/sml-benchmark-v2/API
+BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain the same.
 
 ## News
-14 Mar 2018: The Benchmark is available in the online Platform. Please find the benchmark-sernsitive information and helpful instructions above. 
+14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sernsitive information and helpful instructions above. 
 
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
 
