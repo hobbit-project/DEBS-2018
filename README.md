@@ -35,8 +35,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 5) Once you have tested docker image of your system you may upload it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and skip the image building phase.
 
 ## Benchmark-sensitive information
-Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark (to be announced later): 
-1) URI of the benchmarkAPI to be placed into your system.ttl file
+1) BenchmarkAPI (value of `hobbit:implementsAPI` in your system.ttl file): <http://project-hobbit.eu/sml-benchmark-v2/API>
 
 ## News
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
