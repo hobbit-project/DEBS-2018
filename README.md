@@ -54,12 +54,12 @@ Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-G
 For your system you have to modify the following:
 - System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
 - Label and Comment - will be displayed in GUI
-- ImageName: the url at which your docker image was uploaded (pushed).
+- ImageName: the URL at which your docker image was uploaded (pushed).
 
-BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain the same.
+BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain unchanged.
 
 ## News
-14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sernsitive information and helpful instructions above. 
+14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
 
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
 
