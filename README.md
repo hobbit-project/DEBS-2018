@@ -35,14 +35,14 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 5) Once you have tested docker image of your system you may upload it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and skip the image building phase.
 
 ## How to upload your system to the platform
-1. Create a user account in the platform.
-2. Create a new project at platform's GitLab.
+1. Create a user account via [GUI of the platform](https://master.project-hobbit.eu).
+2. Create a new project at [platform's GitLab](https://git.project-hobbit.eu).
 3. Modify GIT_REPO_PATH and PROJECT_NAME at Constants.java to fit the URL of project you have created.
 4. Build docker image using the `buildImages()` from the [SampleSystemTest.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/test/java/org/hobbit/debs_2018_gc_samples/SampleSystemTest.java). The full URI of build image will be shown in console - should fit the URI of you project you just created. 
-5. Login to the remote gitlab from console: sudo docker login git.project-hobbit.eu:4567.
-6. Push your image to remote gitlab by the docker push <imageUri>.
-7. Put the modified benchmark.ttl into you project at GitLab (check whether ImageName fits the URI of the image you have just pushed).
-8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. GUI will apply the updated System.ttl within 30-60 seconds after it has been changed.
+5. Login to the remote gitlab from console: `sudo docker login git.project-hobbit.eu:4567` using the credentials of an account you've just created.
+6. Push your image to remote gitlab by the `docker push <imageUri>`.
+7. Put the modified benchmark.ttl into you project at GitLab. Check whether ImageName in it fits the URI of the image you have just pushed.
+8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. The GUI will apply the updated system.ttl during 30-60 seconds after it has been changed.
   
 ## How to register for the online challenge
 1. Once your system works well in the online platform you may register to the challenges (the training phace and final execution). Please register your system for the both tasks of the challenges. 
