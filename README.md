@@ -46,7 +46,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 
 Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/system.ttl). 
 For your system you have to modify the following:
-- System URI - (<SystemURL> a hobbit:SystemInstance) some unique identifier of your system (used by the platform internally).
+- System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
 - Label and Comment - will be displayed in GUI
 - ImageName: the url at which your docker image was uploaded (pushed).
 
