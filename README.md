@@ -46,7 +46,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
   
 ## How to register for the online challenge
 1. Once your system works well in the online platform you may register to the challenges (the training phace and final execution). Please register your system for the both tasks of the challenges. 
-2. Systems registered for the `DEBS Grand Challenge 2018 Training phase` will be executed periodically (till the mid of May) over as some part of unseen data. The results  will be publicly available at the online leaderboards. Participation in training phase is not mandatory, but it should help participants to solve all the problems before the final execution. 
+2. Systems registered for the `DEBS Grand Challenge 2018 Training phase` will be executed periodically (till the mid of May) over as some part of unseen data. The results  will be publicly available at the [online leaderboards](https://master.project-hobbit.eu/challenges/http:%2F%2Fw3id.org%2Fhobbit%2Fchallenges%2333578642-2a74-4a95-8f9b-24a6f675937f/leaderboards). Participation in training phase is not mandatory, but it should help participants to solve all the problems before the final execution. 
 3. Systems registered for the `DEBS Grand Challenge 2018 Final Execution` will be executed once (after the mid of May) over the rest part of unseen data. The results announcement as well as winner award will be held during the DEBS Conference by 25-29 of June.
 
 ## Benchmark-sensitive information
