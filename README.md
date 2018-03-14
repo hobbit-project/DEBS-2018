@@ -8,7 +8,7 @@ Finally the docker image of the system may be uploaded into the [HOBBIT online p
 
 # Benchmark description
 The reposity containts the following components:
-- Data generator  
+- Task generator  
 - Sample system
 - Sample system test
 
@@ -33,6 +33,22 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 3) Once your system correctly tested as pure java code you may test it being packed into docker container. To build docker image you for the system you have to configure values in the `SamplesDockersBuilder.java`, package your code into jar file (`mvn package -DskipTests=true`) and execute the `buildImages()` from the `SampleSystemTest.java`. Image building is automatic, but  is on-demand, i.e. you have to check the actuality and rebuild images (inc. rebuilding jar file) by your own.
 3) Run the `checkHealthDockerized()` method from the `SampleSystemTest.java` to test/debug your system as docker container. All internal logs from containers will be provided. You may skip logs output from other components via `skipLogsReadingProperty()`.
 5) Once you have tested docker image of your system you may upload it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and skip the image building phase.
+
+## How to upload your system to the platform
+1. Create a user account in the platform.
+2. Create a new project at platform's GitLab.
+3. Modify GIT_REPO_PATH and PROJECT_NAME at Constants.java to fit the URL of project you have created.
+4. Build docker image using the buildImages() from the SampleSystemTest.java.
+5. Login to the remote gitlab from console: sudo docker login git.project-hobbit.eu:4567.
+6. Push your image to remote gitlab by the docker push <imageUri>.
+7. Put the modified benchmark.ttl into you project at GitLab (check whether ImageName fits the URI of the image you have just pushed).
+8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. GUI will apply the updated System.ttl within 30-60 seconds after it has been changed.
+
+Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/system.ttl). 
+For your system you have to modify the following:
+- System URI - a hobbit:SystemInstance - some unique identifier of your system (used by the platform internally).
+- Label and Comment - will be displayed in GUI
+- ImageName: the url at which your docker image was uploaded (pushed).
 
 ## Benchmark-sensitive information
 1) BenchmarkAPI (value of `hobbit:implementsAPI` in your system.ttl file): <http://project-hobbit.eu/sml-benchmark-v2/API>
