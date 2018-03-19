@@ -41,8 +41,8 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 4. Build docker image using the `buildImages()` from the [SampleSystemTest.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/test/java/org/hobbit/debs_2018_gc_samples/SampleSystemTest.java). The full URI of build image (`<imageUri>`) will be shown in console and should look like this `<yourProjectURI>/system-adapter` (the `system-adapter` will be automatically appended by the SDK). Don't forget to package/repackage your codes by the `mvn package -DskipTests=true` before building/rebuilding the image.
 5. Login to the remote gitlab from console: `sudo docker login git.project-hobbit.eu:4567` using the credentials of an account you've just created.
 6. Push your image to remote gitlab by the `docker push <imageUri>`.
-7. Put the modified benchmark.ttl into you project at GitLab. Check whether ImageName in it fits the URI of the image you have just pushed.
-8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. The GUI will apply the updated system.ttl during 30-60 seconds after it has been changed.
+7. Put the modified `system.ttl` into you project at GitLab. The details about the file see in the section below.
+8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. The GUI will apply the updated `system.ttl` during 30-60 seconds after it has been changed.
   
 ## How to register for the online challenge
 1. Once your system works well in the online platform you may register to the challenges (the training phace and final execution). Please register your system for the both tasks of the challenges. 
@@ -54,7 +54,7 @@ Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-G
 For your system you have to modify the following:
 - System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
 - Label and Comment - will be displayed in GUI
-- ImageName: the URL at which your docker image was uploaded (pushed).
+- ImageName: the URL at which your docker image (`<imageUri>`) was uploaded/pushed.
 
 BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain unchanged.
 
