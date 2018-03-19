@@ -37,7 +37,7 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 ## How to upload your system to the platform
 1. Create a user account via [GUI of the platform](https://master.project-hobbit.eu).
 2. Create a new project at [platform's GitLab](https://git.project-hobbit.eu).
-3. Modify GIT_REPO_PATH and PROJECT_NAME at Constants.java to fit the URL of project you have created. 
+3. Modify GIT_REPO_PATH and PROJECT_NAME at [Constants.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/main/java/org/hobbit/debs_2018_gc_samples/Benchmark/Constants.java) to fit the URL of project you have created. 
 4. Build docker image using the `buildImages()` from the [SampleSystemTest.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/test/java/org/hobbit/debs_2018_gc_samples/SampleSystemTest.java). The full URI of build image (`<imageUri>`) will be shown in console and should look like this `<yourProjectURI>/system-adapter`. Don't forget to package/repackage your codes by the `mvn package -DskipTests=true` before building/rebuilding the image.
 5. Login to the remote gitlab from console: `sudo docker login git.project-hobbit.eu:4567` using the credentials of an account you've just created.
 6. Push your image to remote gitlab by the `docker push <imageUri>`.
