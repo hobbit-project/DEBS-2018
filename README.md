@@ -8,7 +8,7 @@ Finally the docker image of the system may be uploaded into the [HOBBIT online p
 
 # Benchmark description
 The reposity containts the following components:
-- Data generator  
+- Task generator  
 - Sample system
 - Sample system test
 
@@ -34,11 +34,33 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 3) Run the `checkHealthDockerized()` method from the `SampleSystemTest.java` to test/debug your system as docker container. All internal logs from containers will be provided. You may skip logs output from other components via `skipLogsReadingProperty()`.
 5) Once you have tested docker image of your system you may upload it into the HOBBIT platform. Please follow the instructions of the standard procedure (decribed [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and skip the image building phase.
 
+## How to upload your system to the platform
+1. Create a user account via [GUI of the platform](https://master.project-hobbit.eu).
+2. Create a new project at [platform's GitLab](https://git.project-hobbit.eu).
+3. Modify the `GIT_REPO_PATH` and `PROJECT_NAME` in [Constants.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/main/java/org/hobbit/debs_2018_gc_samples/Benchmark/Constants.java) to fit the URL of project you've just created. `SYSTEM_IMAGE_NAME` will be used as URI of your system's image (`<imageUri>`) and should finally look like this `git.project-hobbit.eu:4567/<yourUsername>/<yourProjectName>/system-adapter`. 
+4. Build docker image using the `buildImages()` from the [SampleSystemTest.java](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/src/test/java/org/hobbit/debs_2018_gc_samples/SampleSystemTest.java). The full URI of build image (`<imageUri>`) will be shown in console. Don't forget to package/repackage your codes by the `mvn package -DskipTests=true` before building/rebuilding the image.
+5. Login to the remote gitlab from console: `sudo docker login git.project-hobbit.eu:4567` using the credentials of an account you've just created.
+6. Push your image to remote gitlab by the `docker push <imageUri>`.
+7. Put the modified `system.ttl` into you project at GitLab. The details about the file see in the section below.
+8. Find your system in the GUI under the Benchmarks Tab after selecting the DEBS GC 2018 Benchmark. The GUI will apply the updated `system.ttl` during 30-60 seconds after it has been changed.
+  
+## How to register for the online challenge
+1. Once your system works well in the online platform you may register to the challenges (the training phace and final execution). Please register your system for the both tasks of the challenges. 
+2. Systems registered for the `DEBS Grand Challenge 2018 Training phase` will be executed periodically (till the mid of May) over as some part of unseen data. The results  will be publicly available at the [online leaderboards](https://master.project-hobbit.eu/challenges/http:%2F%2Fw3id.org%2Fhobbit%2Fchallenges%2333578642-2a74-4a95-8f9b-24a6f675937f/leaderboards). Participation in training phase is not mandatory, but it should help participants to solve all the problems before the final execution. 
+3. Systems registered for the `DEBS Grand Challenge 2018 Final Execution` will be executed once (after the mid of May) over the rest part of unseen data. The results announcement as well as winner award will be held during the DEBS Conference by 25-29 of June.
+
 ## Benchmark-sensitive information
-Please check this section later to find the latest sensitive information about the online DEBS GC 2018 benchmark (to be announced later): 
-1) URI of the benchmarkAPI to be placed into your system.ttl file
+Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/system.ttl). 
+For your system you have to modify the following:
+- System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
+- Label and Comment - will be displayed in GUI
+- ImageName: the URL at which your docker image (`<imageUri>`) was uploaded/pushed.
+
+BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain unchanged.
 
 ## News
+14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
+
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
 
 ## FAQ
