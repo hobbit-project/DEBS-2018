@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.*;
 
 
+
 /**
  * @author Pavel Smirnov
  */
@@ -29,12 +30,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
     private final Map<String, Integer> tripIndexes = new HashMap<>();
 
     private final Map<String, Integer> shipTuplesCount = new HashMap<>();
-    private final Map<String, String> taskLabels = new HashMap<>();
-    private final Map<String, String> tupleTimestamps = new HashMap<>();
     private final Map<String, String> taskShipMap = new HashMap<>();
-    private final Map<String, List<List<String>>> shipTasks = new HashMap<>();
     private Map<String, List<List<DataPoint>>> shipTrips;
-    private final Map<String, Long> taskSentTimestamps = new HashMap<>();
 
     private List<String> shipsToSend = new ArrayList<>();
 
@@ -45,15 +42,18 @@ public class TaskGenerator extends AbstractTaskGenerator {
     long allPointsCount=0;
     Channel evalStorageTaskGenChannel;
     QueueingConsumer exchangeQueueConsumer;
-
     int recordsSent = 0;
     int recordsLimit = 0;
     long lastReportedValue = 0;
-
+    //long expectationsToStorageTime =0;
+    long valDiff = 0;
     long expectationsSent = 0;
+    String[] shipIdsToSend;
+
     String encryptionKey="encryptionKey";
     String tupleName="tuples";
     Timer timer;
+    int timerPeriodSeconds = 5;
     ExecutorService threadPool;
     Callable <String> executionLoop;
 
@@ -122,29 +122,28 @@ public class TaskGenerator extends AbstractTaskGenerator {
                     }
 
                 }
-
             }
+            timer.cancel();
             return "";
         };
 
-
         initData();
+
     }
 
     private void initData() throws Exception {
 
-        Utils.logger = this.logger;
-        //String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
-        String[] lines = Utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
+        Utils utils = new Utils(this.logger);
 
-        shipTrips = Utils.getTripsPerShips(lines);
+        String[] lines = utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
+        shipTrips = utils.getTripsPerShips(lines);
+
 
         for(String shipId : shipTrips.keySet()){
             shipsToSend.add(shipId);
             List<DataPoint> shipPoints = shipTrips.get(shipId).stream().flatMap(l-> l.stream()).collect(Collectors.toList());
             allPointsCount+=shipPoints.size();
             shipTuplesCount.put(shipId, shipPoints.size());
-            shipTasks.put(shipId, new ArrayList<>());
             if(sequental)
                 allPoints.addAll(shipPoints);
         }
@@ -167,7 +166,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
         Future<String> future = threadPool.submit(executionLoop);
         try {
             future.get(generationTimeout, TimeUnit.MINUTES);
-        } catch (ExecutionException e) {
+       } catch (ExecutionException e) {
             logger.error("RuntimeException: {}", e.getMessage());
             e.getCause();
             System.exit(1);
@@ -187,7 +186,6 @@ public class TaskGenerator extends AbstractTaskGenerator {
         double took = (new Date().getTime() - started)/1000.0;
         logger.debug("Finished after {} tuples sent. Took {} s. Avg: {} tuples/s", recordsSent, took, Math.round(recordsSent/took));
 
-
     }
 
 
@@ -196,24 +194,24 @@ public class TaskGenerator extends AbstractTaskGenerator {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                long valDiff = recordsSent - lastReportedValue;
+                valDiff = (recordsSent - lastReportedValue)/timerPeriodSeconds;
                 logger.debug("{} {} sent. Curr: {} tuples/s",tupleName, recordsSent, valDiff);
                 lastReportedValue = recordsSent;
             }
-        }, 1000, 1000);
+        }, 1000, timerPeriodSeconds*1000);
     }
 
     private Boolean sendData(String shipId) throws Exception {
-        Boolean ret = false;
+        Boolean stop = false;
         if(sequental)
             sendSequental();
         else
             sendParallel(shipId);
 
         if (shipsToSend.size()==0)
-            ret=true;
+            stop=true;
 
-        return ret;
+        return stop;
     }
 
     private void sendSequental() throws Exception {
@@ -221,44 +219,50 @@ public class TaskGenerator extends AbstractTaskGenerator {
         sendPoint(dataPoint, "groupId", recordsSent);
     }
 
-    private void sendParallel(String signleShipId) throws Exception {
+    private void sendParallel(String signleShipId){
 
-        String[] shipIdsToSend = (signleShipId!=null ? new String[]{ signleShipId }: shipsToSend.toArray(new String[0]));
+        shipIdsToSend = (signleShipId!=null ? new String[]{ signleShipId }: shipsToSend.toArray(new String[0]));
 
-        int shipIndex=0;
         for(String shipId : shipIdsToSend){
-            int tripIndex = 0;
-            if(tripIndexes.containsKey(shipId))
-                tripIndex = tripIndexes.get(shipId);
 
-            int pointIndex = 0;
-            if(pointIndexes.containsKey(shipId))
-                pointIndex = pointIndexes.get(shipId);
+            try {
+                int tripIndex = (tripIndexes.containsKey(shipId)?tripIndexes.get(shipId):0);
+                int pointIndex = (pointIndexes.containsKey(shipId)? pointIndexes.get(shipId):0);
 
-            if(pointIndex == shipTrips.get(shipId).get(tripIndex).size()){
-                tripIndex++;
+                String encryptedTaskId = null;
+                while (encryptedTaskId==null && tripIndex < shipTrips.get(shipId).size()){
+                    DataPoint dataPoint = shipTrips.get(shipId).get(tripIndex).get(pointIndex);
+
+                    try {
+                        encryptedTaskId = sendPoint(dataPoint, shipId + "_" + tripIndex, pointIndex);
+                        if(encryptedTaskId==null)
+                            pointIndex=99999999; //switch to the next trip of the ship
+                    }
+                    catch (Exception e){
+                        logger.error("Problem with sendPoint(): "+e.getMessage());
+                    }
+
+                    pointIndex++;
+
+                    //if all point of the trip have been sent off switch to the next trip
+                    if (pointIndex >= shipTrips.get(shipId).get(tripIndex).size()) {
+                        tripIndex++;
+                        pointIndex=0;
+                    }
+                }
+
+                //finish without waiting the last notification
+                if (tripIndex >= shipTrips.get(shipId).size())
+                    shipsToSend.remove(shipId);
+
+
                 tripIndexes.put(shipId, tripIndex);
-                pointIndex=0;
-            }
-
-
-            if(tripIndex < shipTrips.get(shipId).size()){
-                DataPoint dataPoint = shipTrips.get(shipId).get(tripIndex).get(pointIndex);
-                String encryptedTaskId = sendPoint(dataPoint, shipId+"_"+tripIndex, pointIndex);
-
-                List<String> tripTasks = new ArrayList<>();
-                if(shipTasks.get(shipId).size()==tripIndex)
-                    shipTasks.get(shipId).add(tripTasks);
-
-                tripTasks = shipTasks.get(shipId).get(tripIndex);
-                tripTasks.add(encryptedTaskId);
-
-                pointIndex++;
                 pointIndexes.put(shipId, pointIndex);
-            }else{
-                shipsToSend.remove(shipId);
+
             }
-            shipIndex++;
+            catch (Exception e){
+                logger.error("Problem with sendParallel(): "+e.getMessage());
+            }
         }
 
     }
@@ -271,31 +275,36 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
         String sendToSystem = raw;
         logger.trace("sendTaskToSystemAdapter({})->{}", taskId, sendToSystem);
-        long sentTimestamp = System.currentTimeMillis();
-        sendTaskToSystemAdapter(taskId, sendToSystem.getBytes());
-
-        String encryptedTaskId = Utils.encryptString(taskId, encryptionKey);
-        taskShipMap.put(encryptedTaskId, shipId);
-        taskSentTimestamps.put(encryptedTaskId, sentTimestamp);
 
         String label = dataPoint.get("arrival_port_calc");
-        String timestamp = dataPoint.get("timestamp");
-
+        String ret = null;
         if(label!=null) {
+            long sentTimestamp = System.currentTimeMillis();
+            sendTaskToSystemAdapter(taskId, sendToSystem.getBytes());
+
+            String encryptedTaskId = Utils.encryptString(taskId, encryptionKey);
+            taskShipMap.put(encryptedTaskId, shipId);
+
+            String timestamp = dataPoint.get("timestamp");
+
+
             if (queryType == 2)
                 label += "," + dataPoint.get("arrival_calc");
-            taskLabels.put(encryptedTaskId, label);
-            tupleTimestamps.put(encryptedTaskId, timestamp);
+
+            sendExpectation(encryptedTaskId, sentTimestamp, tripId, orderingIndex, timestamp, label);
+            recordsSent++;
+            ret = encryptedTaskId;
         }
 
-        sendExpectation(encryptedTaskId, sentTimestamp, tripId, orderingIndex, timestamp, label);
 
-        recordsSent++;
-        return encryptedTaskId;
+        return ret;
     }
+
+
 
     private void sendExpectation(String encTaskId, long taskSentTimestamp, String tripId, int orderingIndex, String tupleTimestamp, String label) throws IOException {
         String sendToStorage = (queryType == 1 ? tripId+","+orderingIndex+ ","+ tupleTimestamp+",": "")  + label;
+        //String sendToStorage = (queryType == 1 ? totalTaskIndex+ ","+ totalTripIndex+","+tupleAward: tripDuration) + "," + label;
         logger.trace("sendTaskToEvalStorage({})=>{}", encTaskId, sendToStorage.getBytes());
         sendTaskToEvalStorage(encTaskId, taskSentTimestamp, sendToStorage.getBytes());
     }

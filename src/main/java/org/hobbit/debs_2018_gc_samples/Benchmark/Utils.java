@@ -15,9 +15,13 @@ import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.CHARSET;
 
 
 public class Utils {
-    public static Logger logger = LoggerFactory.getLogger(Utils.class);
+    public Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    public static String[] readFile(Path filepath, int linesLimit) throws IOException {
+    public Utils(Logger logger){
+        this.logger = logger;
+    }
+
+    public String[] readFile(Path filepath, int linesLimit) throws IOException {
         logger.debug("Reading "+filepath);
 
         //URL url  = Resources.getResource(filepath.toString());
@@ -25,13 +29,13 @@ public class Utils {
 
 
         List<String> lines = Files.readAllLines(filepath, CHARSET);
-        logger.debug("File reading finished");
-        if(linesLimit>0)
+        if(linesLimit>0 && lines.size()>linesLimit)
             lines = lines.subList(0, linesLimit+1);
+        logger.debug("File reading finished ({})",lines.size());
         return lines.toArray(new String[0]);
     }
 
-    public static Map<String, List<List<DataPoint>>> getTripsPerShips(String[] lines) throws IOException, ParseException {
+    public Map<String, List<List<DataPoint>>> getTripsPerShips(String[] lines) throws IOException, ParseException {
         logger.debug("Processing {} lines", lines.length);
         Map<String, List<List<DataPoint>>> ret = new LinkedHashMap<>();
 

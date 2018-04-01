@@ -37,7 +37,9 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
     String evalStorageImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-storage";
 
     SystemAdapterDockerBuilder systemAdapterBuilder;
-
+    BenchmarkDockerBuilder benchmarkDockerBuilder;
+    DataGenDockerBuilder dataGenDockerBuilder;
+    EvalStorageDockerBuilder evalStorageDockerBuilder;
 
 
     public void init(Boolean useCachedImages) throws Exception {
@@ -49,6 +51,11 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
         setupGeneratorEnvironmentVariables(1,1);
         setupSystemEnvironmentVariables(SYSTEM_URI, createSystemParameters());
 
+        Boolean skipLogsReading = false;
+        benchmarkDockerBuilder = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading));
+        dataGenDockerBuilder = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading));
+        evalStorageDockerBuilder = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading));
+
         systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages));
 
     }
@@ -57,6 +64,13 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
     @Ignore
     public void buildImages() throws Exception {
         init(false);
+
+        //pull images from remote repo
+        benchmarkDockerBuilder.build().prepareImage();
+        dataGenDockerBuilder.build().prepareImage();
+        evalStorageDockerBuilder.build().prepareImage();
+
+        //build image of you system
         systemAdapterBuilder.build().prepareImage();
     }
 
@@ -76,11 +90,11 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
 
         init(useCachedImages);
 
-        Boolean skipLogsReading = false;
-        Component benchmarkController = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading)).build();
-        Component dataGen = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading)).build();
+
+        Component benchmarkController = benchmarkDockerBuilder.build();
+        Component dataGen = dataGenDockerBuilder.build();
         Component taskGen  = new TaskGenerator();
-        Component evalStorage = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading)).build();
+        Component evalStorage = evalStorageDockerBuilder.build();
 
         Component systemAdapter = new SystemAdapter();
         if(dockerized)
@@ -118,7 +132,7 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
 
     public static JenaKeyValue createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(GENERATOR_LIMIT, 72);
+        kv.setValue(GENERATOR_LIMIT, 0);
         kv.setValue(GENERATOR_TIMEOUT, 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv;
