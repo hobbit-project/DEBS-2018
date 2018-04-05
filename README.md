@@ -58,8 +58,8 @@ For your system you have to modify the following:
 
 BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain unchanged.
 
-In order to fit the current query of the benchmark run (Query 1 or Query 2) the `SYSTEM_PARAMETERS_MODEL` environment variable will be specified to your system container by a benchmark. You you are not using the provided SampleSystem, when you have to implement parsing of the `SYSTEM_PARAMETERS_MODEL` environment variable, which has the following format:
-`{ "@id" : "http://jenaKeyValue.com/URI", "queryType" : "2", "@context" : { "queryType" : { "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType", "@type" : "http://www.w3.org/2001/XMLSchema#int" } } }`. Vi
+In order to switch your system to the query of the current benchmark run (Query 1 or Query 2) the `SYSTEM_PARAMETERS_MODEL` environment variable will be specified by a benchmark. In case you are not using the provided SampleSystem, you have to implement parsing of the `SYSTEM_PARAMETERS_MODEL` environment variable in the initialization of your system. The `SYSTEM_PARAMETERS_MODEL` has the following format:
+```{ "@id" : "http://jenaKeyValue.com/URI", "queryType" : "2", "@context" : { "queryType" : { "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType", "@type" : "http://www.w3.org/2001/XMLSchema#int" } } }```. 
 
 ## News
 14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
