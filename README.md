@@ -53,10 +53,13 @@ The online DEBS GC 2018 benchmark will use another implementations (docker image
 Please find the example of [system.ttl](https://github.com/hobbit-project/DEBS-GC-2018/blob/master/system.ttl). 
 For your system you have to modify the following:
 - System URI - (in the line `<SystemURL> a hobbit:SystemInstance`) - some unique identifier of your system (used by the platform internally).
-- Label and Comment - will be displayed in GUI
+- Label and Comment - will be displayed in GUI. Please include something (organization name/team name/email/etc...) in the label/comment to identify your team for organizers.
 - ImageName: the URL at which your docker image (`<imageUri>`) was uploaded/pushed.
 
 BenchmarkAPI (the line `hobbit:implementsAPI <http://project-hobbit.eu/sml-benchmark-v2/API>;`) should remain unchanged.
+
+In order to switch your system to the query of the current benchmark run (Query 1 or Query 2) the `SYSTEM_PARAMETERS_MODEL` environment variable will be specified by a benchmark. In case you are not using the provided SampleSystem, you have to implement parsing of the `SYSTEM_PARAMETERS_MODEL` environment variable in the initialization of your system. The `SYSTEM_PARAMETERS_MODEL` has the following format:
+```{ "@id" : "http://jenaKeyValue.com/URI", "queryType" : "2", "@context" : { "queryType" : { "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType", "@type" : "http://www.w3.org/2001/XMLSchema#int" } } }```. 
 
 ## News
 14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
