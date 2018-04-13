@@ -6,12 +6,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.CHARSET;
+import static org.hobbit.debs_2018_gc_samples.Constants.CHARSET;
 
 
 public class Utils {

@@ -2,7 +2,7 @@ package org.hobbit.debs_2018_gc_samples;
 
 import org.hobbit.sdk.docker.builders.DynamicDockerFileBuilder;
 
-import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.PROJECT_NAME;
+import static org.hobbit.debs_2018_gc_samples.Constants.PROJECT_NAME;
 
 
 /**

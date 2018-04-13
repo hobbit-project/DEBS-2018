@@ -4,7 +4,6 @@ package org.hobbit.debs_2018_gc_samples.Benchmark;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.QueueingConsumer;
 import org.hobbit.core.components.AbstractTaskGenerator;
-import org.hobbit.core.rabbit.DataSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.*;
+import static org.hobbit.debs_2018_gc_samples.Constants.*;
 
 
 

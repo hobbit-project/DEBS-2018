@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static org.hobbit.debs_2018_gc_samples.Benchmark.Constants.*;
+import static org.hobbit.debs_2018_gc_samples.Constants.*;
 
 
 public class SystemAdapter extends AbstractSystemAdapter {
