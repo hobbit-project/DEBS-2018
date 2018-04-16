@@ -62,7 +62,7 @@ In order to switch your system to the query of the current benchmark run (Query 
 ```{ "@id" : "http://jenaKeyValue.com/URI", "queryType" : "2", "@context" : { "queryType" : { "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType", "@type" : "http://www.w3.org/2001/XMLSchema#int" } } }```. 
 
 ## News
-16 Mar 2018: Sample system implemetaion in Python was [announced](https://github.com/hobbit-project/python-sample-system). 
+16 Apr 2018: Sample system implemetaion in Python was [announced](https://github.com/hobbit-project/python-sample-system). 
 
 14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
 
