@@ -3,6 +3,7 @@ package org.hobbit.debs_2018_gc_samples.Benchmark;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.QueueingConsumer;
+import org.hobbit.core.Commands;
 import org.hobbit.core.components.AbstractTaskGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,31 +23,43 @@ import static org.hobbit.debs_2018_gc_samples.Constants.*;
  */
 
 public class TaskGenerator extends AbstractTaskGenerator {
-    private static final Logger logger = LoggerFactory.getLogger(TaskGenerator.class);
+    private Logger logger;
 
     private final Boolean sequental = false;
     private final Map<String, Integer> pointIndexes = new HashMap<>();
     private final Map<String, Integer> tripIndexes = new HashMap<>();
 
     private final Map<String, Integer> shipTuplesCount = new HashMap<>();
+
+    //private final Map<String, String> tupleTimestamps = new HashMap<>();
     private final Map<String, String> taskShipMap = new HashMap<>();
     private Map<String, Map<String, List<DataPoint>>> shipTrips;
+    //private final Map<String, Map<String, KeyValue>> labelsPerShips = new HashMap<>();
+
+    private final Map<String, List<String>> shipTasks = new HashMap<>();
+    private final Map<String, String> taskExpectations = new HashMap<>();
+    private final Map<String, Long> taskSentTimestamps = new HashMap<>();
 
     private List<String> shipsToSend = new ArrayList<>();
 
     int queryType = -1;
-    int generationTimeout = 60;
+    int generationTimeoutMin = 10;
     public List<DataPoint> allPoints;
 
     long allPointsCount=0;
     Channel evalStorageTaskGenChannel;
     QueueingConsumer exchangeQueueConsumer;
+
+    Channel dataGenTaskGenChannel;
+    QueueingConsumer dataGenTaskGenConsumer;
+
     int recordsSent = 0;
     int recordsLimit = 0;
     long lastReportedValue = 0;
     //long expectationsToStorageTime =0;
     long valDiff = 0;
     long expectationsSent = 0;
+    long errors = 0;
     String[] shipIdsToSend;
 
     String encryptionKey="encryptionKey";
@@ -56,11 +69,17 @@ public class TaskGenerator extends AbstractTaskGenerator {
     ExecutorService threadPool;
     Callable <String> executionLoop;
 
-    Boolean gerenationFinished = false;
+    Boolean gerenationStarted = false;
+
+    public TaskGenerator(){
+        super(1);
+    }
 
     @Override
     public void init() throws Exception {
+        // Always init the super class first!
         super.init();
+        logger = LoggerFactory.getLogger(TaskGenerator.class.getName()+"_"+getGeneratorId());
         logger.debug("Init()");
 
         if(System.getenv().containsKey(ENCRYPTION_KEY_NAME))
@@ -75,7 +94,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
             logger.debug("GENERATOR_TIMEOUT={}",System.getenv().get("GENERATOR_TIMEOUT"));
             int newTimeout = Integer.parseInt(System.getenv().get("GENERATOR_TIMEOUT"));
             if(newTimeout>0)
-                generationTimeout = newTimeout;
+                generationTimeoutMin = newTimeout;
         }
 
         if(System.getenv().containsKey("QUERY_TYPE"))
@@ -91,15 +110,19 @@ public class TaskGenerator extends AbstractTaskGenerator {
         int dataGeneratorId = getGeneratorId();
         int numberOfGenerators = getNumberOfGenerators();
 
-        logger.debug("Init (queryType={}, recordsLimit={}, timeout={}",dataGeneratorId, String.valueOf(recordsLimit), String.valueOf(generationTimeout)+")");
+        logger.debug("Init (genId={}, queryType={}, recordsLimit={}, timeout={}", dataGeneratorId, queryType, String.valueOf(recordsLimit), String.valueOf(generationTimeoutMin)+")");
 
         String exchangeQueueName = this.generateSessionQueueName(ACKNOWLEDGE_QUEUE_NAME);
 
         evalStorageTaskGenChannel = this.cmdQueueFactory.getConnection().createChannel();
-        evalStorageTaskGenChannel.queueDeclare(exchangeQueueName, false, false, true, null);
+        //evalStorageTaskGenChannel.queueDeclare(exchangeQueueName, false, false, true, null);
+        evalStorageTaskGenChannel.exchangeDeclare(exchangeQueueName, "fanout", false, true, (Map)null);
+
+        String queueName = evalStorageTaskGenChannel.queueDeclare().getQueue();
+        evalStorageTaskGenChannel.queueBind(queueName, exchangeQueueName, "");
 
         exchangeQueueConsumer = new QueueingConsumer(evalStorageTaskGenChannel);
-        evalStorageTaskGenChannel.basicConsume(exchangeQueueName, true, exchangeQueueConsumer);
+        evalStorageTaskGenChannel.basicConsume(queueName, true, exchangeQueueConsumer);
 
         threadPool = Executors.newCachedThreadPool();
         executionLoop = ()->{
@@ -109,6 +132,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
                 byte[] body = delivery.getBody();
                 if (body.length > 0){
                     String encryptedTaskId = new String(body);
+                    logger.trace("Received acknowledgement: {}", encryptedTaskId);
                     if (taskShipMap.containsKey(encryptedTaskId)){
                         String shipId = taskShipMap.get(encryptedTaskId);
                         taskShipMap.remove(encryptedTaskId);
@@ -121,8 +145,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
                     }
 
                 }
+                //stop = sendData(null);
             }
-            timer.cancel();
             return "";
         };
 
@@ -130,33 +154,57 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
     }
 
+    @Override
+    protected void generateTask(byte[] bytes) throws Exception {
+
+    }
+
+
     private void initData() throws Exception {
+        //getPointsPerShip(Paths.get("data","vessel24hpublic_fixed.csv"),0);
+        //getPointsPerShip(Paths.get("data","debs2018_training_fixed_2.csv"), recordsLimit);
 
+        //String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
         Utils utils = new Utils(this.logger);
-
         String[] lines = utils.readFile(Paths.get("data","debs2018_training_fixed_5.csv"), recordsLimit);
+
+        //String[] lines = Utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
+
         shipTrips = utils.getTripsPerShips(lines);
+        int generatorId = getGeneratorId();
 
 
         for(String shipId : shipTrips.keySet()){
+            //for(String shipId : new String[]{ shipTrips.keySet().iterator().next() }){
             shipsToSend.add(shipId);
             List<DataPoint> shipPoints = shipTrips.get(shipId).values().stream().flatMap(l-> l.stream()).collect(Collectors.toList());
+            //pointsPerShip.put(shipId, shipPoints);
             allPointsCount+=shipPoints.size();
             shipTuplesCount.put(shipId, shipPoints.size());
+            shipTasks.put(shipId, new ArrayList<>());
             if(sequental)
                 allPoints.addAll(shipPoints);
         }
-        String test="123";
     }
 
+
     @Override
-    public void generateTask(byte[] data) throws Exception {
+    public void receiveCommand(byte command, byte[] data) {
+        if (command == Commands.TASK_GENERATOR_START_SIGNAL) {
+            logger.debug("TASK_GENERATOR_START_SIGNAL received");
 
-        logger.debug("generateTask()");
-        if(gerenationFinished)
-            return;
+            if(gerenationStarted)
+                return;
+            gerenationStarted=true;
+            generateData();
+        }
+        super.receiveCommand(command, data);
+    }
 
-        gerenationFinished = true;
+
+
+    public void generateData(){
+        logger.debug("generateData()");
 
         startTimer();
 
@@ -165,8 +213,9 @@ public class TaskGenerator extends AbstractTaskGenerator {
         logger.debug("Start sending tuples(" + shipsToSend.size() + " ships)");
         Future<String> future = threadPool.submit(executionLoop);
         try {
-            future.get(generationTimeout, TimeUnit.MINUTES);
-       } catch (ExecutionException e) {
+            future.get(generationTimeoutMin, TimeUnit.MINUTES);
+            //future.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
             logger.error("RuntimeException: {}", e.getMessage());
             e.getCause();
             System.exit(1);
@@ -176,15 +225,24 @@ public class TaskGenerator extends AbstractTaskGenerator {
             e.getCause();
             System.exit(1);
         } catch (TimeoutException e) {
-            Exception e2 = new Exception("Timeout exception: "+ generationTimeout +" min");
+            Exception e2 = new Exception("Timeout exception: "+ generationTimeoutMin +" min");
             logger.error(e2.getMessage());
             System.exit(1);
         }
+
+        try {
+            sendToCmdQueue(Commands.DATA_GENERATION_FINISHED);
+        } catch (IOException e) {
+            logger.error("Error sending the Commands.DATA_GENERATION_FINISHED command");
+        }
+
         threadPool.shutdown();
         timer.cancel();
 
         double took = (new Date().getTime() - started)/1000.0;
         logger.debug("Finished after {} tuples sent. Took {} s. Avg: {} tuples/s", recordsSent, took, Math.round(recordsSent/took));
+
+        timer.cancel();
 
     }
 
@@ -195,7 +253,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
             @Override
             public void run() {
                 valDiff = (recordsSent - lastReportedValue)/timerPeriodSeconds;
-                logger.debug("{} {} sent. Curr: {} tuples/s",tupleName, recordsSent, valDiff);
+                logger.debug("{} tuples sent. Unfinished ships:{}. Curr: {} tuples/s", recordsSent, shipsToSend.size(), valDiff);
                 lastReportedValue = recordsSent;
             }
         }, 1000, timerPeriodSeconds*1000);
@@ -231,7 +289,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
                 String encryptedTaskId = null;
                 while (encryptedTaskId==null && tripIndex < shipTrips.get(shipId).size()){
-                    DataPoint dataPoint = shipTrips.get(shipId).get(tripIndex).get(pointIndex);
+                    List<DataPoint> tripPoints = ((List<DataPoint>)(shipTrips.get(shipId).values().toArray()[tripIndex]));
+                    DataPoint dataPoint = tripPoints.get(pointIndex);
 
                     try {
                         encryptedTaskId = sendPoint(dataPoint, shipId + "_" + tripIndex, pointIndex);
@@ -245,7 +304,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
                     pointIndex++;
 
                     //if all point of the trip have been sent off switch to the next trip
-                    if (pointIndex >= shipTrips.get(shipId).get(tripIndex).size()) {
+                    if (pointIndex >= tripPoints.size()) {
                         tripIndex++;
                         pointIndex=0;
                     }
@@ -269,7 +328,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
     private String sendPoint(DataPoint dataPoint, String tripId, int orderingIndex) throws Exception {
 
-        String taskId = "task_"+String.valueOf(recordsSent);
+        String taskId = "gen_"+String.valueOf(getGeneratorId())+"_task_"+String.valueOf(recordsSent);
         String shipId = dataPoint.getValue("ship_id").toString();
         String raw = dataPoint.getStringValueFor("raw");
 
@@ -277,34 +336,38 @@ public class TaskGenerator extends AbstractTaskGenerator {
         logger.trace("sendTaskToSystemAdapter({})->{}", taskId, sendToSystem);
 
         String label = dataPoint.get("arrival_port_calc");
-        String ret = null;
+
+        long taskSentTimestamp = System.currentTimeMillis();
+        sendTaskToSystemAdapter(taskId, sendToSystem.getBytes());
+
+        String encryptedTaskId = encryptString(taskId, encryptionKey);
+        taskShipMap.put(encryptedTaskId, shipId);
+
+        List<String> thisShipTasks = shipTasks.get(shipId);
+        thisShipTasks.add(encryptedTaskId);
+        shipTasks.put(shipId, thisShipTasks);
+        taskSentTimestamps.put(encryptedTaskId, taskSentTimestamp);
+
+        String tupleTimestamp = dataPoint.get("timestamp");
+        String expectation = "";
         if(label!=null) {
-            long sentTimestamp = System.currentTimeMillis();
-            sendTaskToSystemAdapter(taskId, sendToSystem.getBytes());
-
-            String encryptedTaskId = Utils.encryptString(taskId, encryptionKey);
-            taskShipMap.put(encryptedTaskId, shipId);
-
-            String timestamp = dataPoint.get("timestamp");
-
-
             if (queryType == 2)
                 label += "," + dataPoint.get("arrival_calc");
-
-            sendExpectation(encryptedTaskId, sentTimestamp, tripId, orderingIndex, timestamp, label);
-            recordsSent++;
-            ret = encryptedTaskId;
+            expectation = (queryType == 1 ? tripId + "," + orderingIndex + "," + tupleTimestamp + "," : "") + label;
+            sendExpectation(encryptedTaskId, taskSentTimestamp, expectation);
+            //taskExpectations.put(encryptedTaskId, expectation);
         }
 
+        recordsSent++;
+        return encryptedTaskId;
+    }
 
-        return ret;
+    public static String encryptString(String string, String encryptionKey){
+        return string;
     }
 
 
-
-    private void sendExpectation(String encTaskId, long taskSentTimestamp, String tripId, int orderingIndex, String tupleTimestamp, String label) throws IOException {
-        String sendToStorage = (queryType == 1 ? tripId+","+orderingIndex+ ","+ tupleTimestamp+",": "")  + label;
-        //String sendToStorage = (queryType == 1 ? totalTaskIndex+ ","+ totalTripIndex+","+tupleAward: tripDuration) + "," + label;
+    private void sendExpectation(String encTaskId, long taskSentTimestamp, String sendToStorage) throws IOException {
         logger.trace("sendTaskToEvalStorage({})=>{}", encTaskId, sendToStorage.getBytes());
         sendTaskToEvalStorage(encTaskId, taskSentTimestamp, sendToStorage.getBytes());
     }

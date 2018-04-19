@@ -33,13 +33,11 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     //Should not be changed, because there images will be called from benchmark-controller
     String benchmarkImageName = "git.project-hobbit.eu:4567/debs_2018_gc/benchmark-controller";
-    String dataGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/data-generator";
     String taskGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/task-generator";
     String evalStorageImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-storage";
 
     SystemAdapterDockerBuilder systemAdapterBuilder;
     BenchmarkDockerBuilder benchmarkDockerBuilder;
-    DataGenDockerBuilder dataGenDockerBuilder;
     EvalStorageDockerBuilder evalStorageDockerBuilder;
 
     String systemImageName;
@@ -51,7 +49,6 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         test.checkHealth();
     }
 
-
     public SampleSystemTestRunner(String systemImageName, String sessionId){
         this.systemImageName = systemImageName;
         this.sessionId = sessionId;
@@ -61,40 +58,37 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
         rabbitMqDockerizer = RabbitMqDockerizer.builder().build();
 
-        setupCommunicationEnvironmentVariables(rabbitMqDockerizer.getHostName(), sessionId);
+        setupCommunicationEnvironmentVariables(rabbitMqDockerizer.getHostName(), this.sessionId);
         setupBenchmarkEnvironmentVariables(EXPERIMENT_URI, createBenchmarkParameters());
-        setupGeneratorEnvironmentVariables(1,1);
+        //setupGeneratorEnvironmentVariables(1,1);
         setupSystemEnvironmentVariables(SYSTEM_URI, createSystemParameters());
 
         Boolean skipLogsReading = false;
-        benchmarkDockerBuilder = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading));
-        dataGenDockerBuilder = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading));
-        evalStorageDockerBuilder = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading));
+        benchmarkDockerBuilder = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
+        //dataGenDockerBuilder = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
+        evalStorageDockerBuilder = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
 
-        systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages));
+        systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages).useCachedContainer(false));
 
     }
 
-    @Test
-    @Ignore
+
     public void buildImages() throws Exception {
         init(false);
 
         //pull images from remote repo
         benchmarkDockerBuilder.build().prepareImage();
-        dataGenDockerBuilder.build().prepareImage();
         evalStorageDockerBuilder.build().prepareImage();
 
         //build image of you system
         systemAdapterBuilder.build().prepareImage();
     }
 
-    @Test
+
     public void checkHealth() throws Exception {
         checkHealth(false);
     }
 
-    @Test
     public void checkHealthDockerized() throws Exception {
         checkHealth(true);
     }
@@ -103,11 +97,11 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
         Boolean useCachedImages = true;
 
+
         init(useCachedImages);
 
 
         Component benchmarkController = benchmarkDockerBuilder.build();
-        Component dataGen = dataGenDockerBuilder.build();
         Component taskGen  = new TaskGenerator();
         Component evalStorage = evalStorageDockerBuilder.build();
 
@@ -124,7 +118,6 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         commandQueueListener.setCommandReactions(
                 new MultipleCommandsReaction.Builder(componentsExecutor, commandQueueListener)
                         .benchmarkController(benchmarkController).benchmarkControllerImageName(benchmarkImageName)
-                        .dataGenerator(dataGen).dataGeneratorImageName(dataGeneratorImageName)
                         .taskGenerator(taskGen).taskGeneratorImageName(taskGeneratorImageName)
                         .evalStorage(evalStorage).evalStorageImageName(evalStorageImageName)
                         .systemAdapter(systemAdapter)
@@ -136,8 +129,14 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         componentsExecutor.submit(commandQueueListener);
         commandQueueListener.waitForInitialisation();
 
-        commandQueueListener.submit(benchmarkImageName, new String[]{ Constants.BENCHMARK_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.BENCHMARK_PARAMETERS_MODEL_KEY ) });
-        commandQueueListener.submit(systemImageName, new String[]{ Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.SYSTEM_PARAMETERS_MODEL_KEY ) });
+        commandQueueListener.submit(benchmarkImageName, new String[]{
+                Constants.BENCHMARK_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.BENCHMARK_PARAMETERS_MODEL_KEY ),
+                //"HOBBIT_SESSION_ID="+System.getenv().get("HOBBIT_SESSION_ID")
+        });
+        commandQueueListener.submit(systemImageName, new String[]{
+                Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.SYSTEM_PARAMETERS_MODEL_KEY ),
+                //"HOBBIT_SESSION_ID="+System.getenv().get("HOBBIT_SESSION_ID")
+        });
 
         commandQueueListener.waitForTermination();
 
@@ -147,11 +146,11 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
     }
 
 
-    private static int QUERY_TYPE = 2;
+    private static int QUERY_TYPE = 1;
 
     public static JenaKeyValue createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(GENERATOR_LIMIT, 0);
+        kv.setValue(GENERATOR_LIMIT, 1000);
         kv.setValue(GENERATOR_TIMEOUT, 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv;

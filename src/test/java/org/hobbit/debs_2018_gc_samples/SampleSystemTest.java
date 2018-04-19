@@ -10,8 +10,6 @@ import org.junit.Test;
 import java.util.Date;
 
 import static org.hobbit.debs_2018_gc_samples.Constants.*;
-import static org.hobbit.sdk.CommonConstants.EXPERIMENT_URI;
-import static org.hobbit.sdk.examples.dummybenchmark.docker.DummyDockersBuilder.DUMMY_BENCHMARK_IMAGE_NAME;
 
 /**
  * @author Pavel Smirnov
