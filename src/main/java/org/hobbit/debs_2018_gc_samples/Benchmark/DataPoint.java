@@ -16,17 +16,22 @@ public class DataPoint extends KeyValue {
         setValue("ship_id", splitted.get(0));
         setValue("departure_port_name", splitted.get(headings.indexOf("departure_port_name")));
         setValue("timestamp", splitted.get(headings.indexOf("timestamp")));
-        //setValue("raw", string);
-        setValue("raw", String.join(separator, splitted.subList(0, Math.min(splitted.size()-1, 10))));
 
-        String[] valsToTake = new String[]{ "arrival_calc", "arrival_port_calc" };
 
-        for(String valToTake : valsToTake) {
+        String[] valsToExcludeFromRaw = new String[]{ "trip_id", "arrival_calc", "arrival_port_calc" };
+        int firstValIndex = 99999;
+        for(String valToTake : valsToExcludeFromRaw){
             String value = null;
-            if (headings.indexOf(valToTake) < splitted.size() && headings.indexOf(valToTake) < headings.size() )
+            if (headings.indexOf(valToTake)>=0 && headings.indexOf(valToTake) < splitted.size() && headings.indexOf(valToTake) < headings.size() ) {
                 value = splitted.get(headings.indexOf(valToTake));
+                if(headings.indexOf(valToTake)<firstValIndex)
+                    firstValIndex = headings.indexOf(valToTake);
+            }
             setValue(valToTake, value);
         }
+        String rawValue = String.join(separator, splitted.subList(0, Math.min(splitted.size(), firstValIndex)));
+        setValue("raw", rawValue);
+        rawValue=null;
 
     }
 

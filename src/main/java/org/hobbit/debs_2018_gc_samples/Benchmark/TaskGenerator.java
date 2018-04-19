@@ -30,7 +30,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
     private final Map<String, Integer> shipTuplesCount = new HashMap<>();
     private final Map<String, String> taskShipMap = new HashMap<>();
-    private Map<String, List<List<DataPoint>>> shipTrips;
+    private Map<String, Map<String, List<DataPoint>>> shipTrips;
 
     private List<String> shipsToSend = new ArrayList<>();
 
@@ -134,18 +134,19 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
         Utils utils = new Utils(this.logger);
 
-        String[] lines = utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
+        String[] lines = utils.readFile(Paths.get("data","debs2018_training_fixed_5.csv"), recordsLimit);
         shipTrips = utils.getTripsPerShips(lines);
 
 
         for(String shipId : shipTrips.keySet()){
             shipsToSend.add(shipId);
-            List<DataPoint> shipPoints = shipTrips.get(shipId).stream().flatMap(l-> l.stream()).collect(Collectors.toList());
+            List<DataPoint> shipPoints = shipTrips.get(shipId).values().stream().flatMap(l-> l.stream()).collect(Collectors.toList());
             allPointsCount+=shipPoints.size();
             shipTuplesCount.put(shipId, shipPoints.size());
             if(sequental)
                 allPoints.addAll(shipPoints);
         }
+        String test="123";
     }
 
     @Override

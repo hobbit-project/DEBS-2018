@@ -151,7 +151,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     public static JenaKeyValue createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(GENERATOR_LIMIT, 100);
+        kv.setValue(GENERATOR_LIMIT, 0);
         kv.setValue(GENERATOR_TIMEOUT, 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv;

@@ -33,9 +33,9 @@ public class Utils {
         return lines.toArray(new String[0]);
     }
 
-    public Map<String, List<List<DataPoint>>> getTripsPerShips(String[] lines) throws IOException, ParseException {
+    public Map<String, Map<String, List<DataPoint>>> getTripsPerShips(String[] lines) throws Exception {
         logger.debug("Processing {} lines", lines.length);
-        Map<String, List<List<DataPoint>>> ret = new LinkedHashMap<>();
+        Map<String, Map<String, List<DataPoint>>> ret = new LinkedHashMap<>();
 
         Map<String, List<String>> destsPerShip = new HashMap<>();
 
@@ -51,56 +51,37 @@ public class Utils {
         List<String> headings = Arrays.asList(splitted);
         String separator = separators[sepIndex];
 
-        Map<String,String> prevShipDepName= new HashMap<>();
         int tuplesCount=0;
-        int tripsCount=0;
         for(int i=1; i<lines.length; i++){
-            try {
-                DataPoint point = new DataPoint(lines[i], headings, separator);
-                //DataPoint point = null;
-                String shipId = point.getValue("ship_id").toString();
-                //String shipId = point.getValue("vessel_id").toString();
+            //try {
+            DataPoint point = new DataPoint(lines[i], headings, separator);
+            String shipId = point.getValue("ship_id").toString();
 
-                List<List<DataPoint>> shipTrips = new ArrayList<List<DataPoint>>();
-                if (ret.containsKey(shipId))
-                    shipTrips = ret.get(shipId);
-
-                String depPortName = point.getValue("departure_port_name").toString();
-
-                List<DataPoint> lastTrip = new ArrayList<>();
-                if(!prevShipDepName.containsKey(shipId) || !prevShipDepName.get(shipId).equals(depPortName))
-                    shipTrips.add(lastTrip);
-                else
-                    lastTrip = shipTrips.get(shipTrips.size()-1);
-                lastTrip.add(point);
-                tuplesCount++;
-                ret.put(shipId, shipTrips);
-
-                List shipDepartures = new ArrayList();
-                if (destsPerShip.containsKey(shipId)) {
-                    shipDepartures = destsPerShip.get(shipId);
-                    if(!shipDepartures.get(shipDepartures.size()-1).equals(depPortName)) {
-                        shipDepartures.add(depPortName);
-                        tripsCount++;
-                    }
-                }else{
-                    shipDepartures.add(depPortName);
-                    tripsCount++;
-                }
-
-                //shipDepartures.put(depPortName, null);
-                destsPerShip.put(shipId, shipDepartures);
-                prevShipDepName.put(shipId, depPortName);
-            }
-            catch (Exception e){
-                logger.error(e.getMessage());
+            Map<String, List<DataPoint>> shipTrips = new LinkedHashMap<String, List<DataPoint>>();
+            List<DataPoint> lastTrip = new ArrayList<>();
+            String lastTripId = "";
+            if (ret.containsKey(shipId)) {
+                shipTrips = ret.get(shipId);
+                lastTripId = shipTrips.keySet().toArray(new String[0])[shipTrips.size() - 1];
+                lastTrip = shipTrips.get(lastTripId);
             }
 
+            String tripId = point.get("trip_id");
+            List<DataPoint> tripToAddPoint = lastTrip;
+            if(!tripId.equals(lastTripId)){
+                tripToAddPoint = new ArrayList<>();
+            }
+            tripToAddPoint.add(point);
+            shipTrips.put(tripId, tripToAddPoint);
+
+            ret.put(shipId, shipTrips);
+            tuplesCount++;
         }
+
+        int tripsCount = ret.values().stream().map(list->list.size()).mapToInt(Integer::intValue).sum();
         logger.debug("Processing finished: {} tuples, {} trips", tuplesCount, tripsCount);
         return ret;
     }
-
     public static String encryptString(String string, String encryptionKey){
         return string;
     }
