@@ -62,6 +62,8 @@ In order to switch your system to the query of the current benchmark run (Query 
 ```{ "@id" : "http://jenaKeyValue.com/URI", "queryType" : "2", "@context" : { "queryType" : { "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType", "@type" : "http://www.w3.org/2001/XMLSchema#int" } } }```. 
 
 ## News
+16 Apr 2018: Sample system implemetaion in Python was [announced](https://github.com/hobbit-project/python-sample-system). 
+
 14 Mar 2018: The DEBS GC 2018 Benchmark is [available online](https://project-hobbit.eu/structured-machine-learning-benchmark-v2/) as well as challenges have been created. Please find the benchmark-sensitive information and helpful instructions above. 
 
 9 Mar 2018: The repository and remote docker images were updated. New code shows evaluation of you results predicted by your system. Data Generator was replaced by Task Generator, which still requires training dataset to be downloaded and placed into the data folder. Please delete old-one docker images from your local cache (using `docker rmi <imageName>`) in order to new images being downloaded by the SDK. The online benchmark will be announced soon.
