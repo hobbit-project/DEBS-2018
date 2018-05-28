@@ -1,7 +1,9 @@
 package org.hobbit.debs_2018_gc_samples.System;
 
+import org.hobbit.core.Constants;
 import org.hobbit.core.components.AbstractSystemAdapter;
 import org.hobbit.sdk.JenaKeyValue;
+import org.hobbit.sdk.examples.dummybenchmark.DummySystemAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +35,19 @@ public class SystemAdapter extends AbstractSystemAdapter {
     public void init() throws Exception {
         super.init();
 
-        logger.debug("Init finished");
+        logger.debug("Init()");
+        timer = new Timer();
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
 
+        if(!parameters.containsKey(BENCHMARK_URI+"#slaveNode")) {
+            JenaKeyValue slaveParameters = new JenaKeyValue(parameters);
+            slaveParameters.put(BENCHMARK_URI+"#slaveNode", "TRUE");
+            createContainer(SYSTEM_IMAGE_NAME, new String[]{ Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ slaveParameters.encodeToString() });
+        }else
+            logger = LoggerFactory.getLogger(SystemAdapter.class.getCanonicalName()+"_slave");
 
-
-        if(parameters.containsKey(HOBBIT_SYSTEM_CONTAINER_ID_KEY))
-            systemContainerId = Integer.parseInt(parameters.getStringValueFor(HOBBIT_SYSTEM_CONTAINER_ID_KEY));
-
-        logger = LoggerFactory.getLogger(SystemAdapter.class.getName()+"_"+ systemContainerId);
 
         queryType = parameters.getIntValueFor(QUERY_TYPE_KEY);
         if(queryType<=0){
@@ -52,12 +56,9 @@ public class SystemAdapter extends AbstractSystemAdapter {
             throw ex;
         }
 
-        logger.debug("SystemModel: "+parameters.encodeToString());
+        logger.debug("Init finished. SystemModel: "+parameters.encodeToString()+" sender: "+(this.sender2EvalStore!=null?"not null": "null") );
 
-
-        timer = new Timer();
-
-
+        startTimer();
     }
 
     private void startTimer(){
@@ -86,7 +87,7 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     @Override
     public void receiveGeneratedTask(String taskId, byte[] data) {
-        startTimer();
+
         // handle the incoming task and create a result
         String input = new String(data);
         logger.trace("receiveGeneratedTask({})->{}",taskId, input);

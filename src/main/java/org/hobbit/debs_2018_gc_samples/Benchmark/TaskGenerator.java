@@ -43,7 +43,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
     private List<String> shipsToSend = new ArrayList<>();
 
     int queryType = -1;
-    int generationTimeoutMin = 10;
+    int generationTimeoutMin = 30;
     public List<DataPoint> allPoints;
 
     long allPointsCount=0;
@@ -66,10 +66,12 @@ public class TaskGenerator extends AbstractTaskGenerator {
     String tupleName="tuples";
     Timer timer;
     int timerPeriodSeconds = 5;
-    ExecutorService threadPool;
-    Callable <String> executionLoop;
 
     Boolean gerenationStarted = false;
+
+    private Semaphore genStartMutex;
+    private Semaphore genFinishedMutex;
+    private Semaphore systemFinishedMutex;
 
     public TaskGenerator(){
         super(1);
@@ -85,16 +87,11 @@ public class TaskGenerator extends AbstractTaskGenerator {
         if(System.getenv().containsKey(ENCRYPTION_KEY_NAME))
             encryptionKey = System.getenv().get(ENCRYPTION_KEY_NAME);
 
-        if(System.getenv().containsKey("GENERATOR_LIMIT")) {
-            logger.debug("GENERATOR_LIMIT={}",System.getenv().get("GENERATOR_LIMIT"));
-            recordsLimit = Integer.parseInt(System.getenv().get("GENERATOR_LIMIT"));
-        }
 
-        if(System.getenv().containsKey("GENERATOR_TIMEOUT")){
-            logger.debug("GENERATOR_TIMEOUT={}",System.getenv().get("GENERATOR_TIMEOUT"));
-            int newTimeout = Integer.parseInt(System.getenv().get("GENERATOR_TIMEOUT"));
-            if(newTimeout>0)
-                generationTimeoutMin = newTimeout;
+
+        if(System.getenv().containsKey("TUPLES_LIMIT")) {
+            logger.debug("TUPLES_LIMIT={}",System.getenv().get("TUPLES_LIMIT"));
+            recordsLimit = Integer.parseInt(System.getenv().get("TUPLES_LIMIT"));
         }
 
         if(System.getenv().containsKey("QUERY_TYPE"))
@@ -110,6 +107,10 @@ public class TaskGenerator extends AbstractTaskGenerator {
         int dataGeneratorId = getGeneratorId();
         int numberOfGenerators = getNumberOfGenerators();
 
+        genFinishedMutex = new Semaphore(0);
+        genStartMutex = new Semaphore(0);
+        systemFinishedMutex = new Semaphore(0);
+
         logger.debug("Init (genId={}, queryType={}, recordsLimit={}, timeout={}", dataGeneratorId, queryType, String.valueOf(recordsLimit), String.valueOf(generationTimeoutMin)+")");
 
         String exchangeQueueName = this.generateSessionQueueName(ACKNOWLEDGE_QUEUE_NAME);
@@ -124,31 +125,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
         exchangeQueueConsumer = new QueueingConsumer(evalStorageTaskGenChannel);
         evalStorageTaskGenChannel.basicConsume(queueName, true, exchangeQueueConsumer);
 
-        threadPool = Executors.newCachedThreadPool();
-        executionLoop = ()->{
-            Boolean stop = sendData(null);
-            while (!stop){
-                QueueingConsumer.Delivery delivery = exchangeQueueConsumer.nextDelivery();
-                byte[] body = delivery.getBody();
-                if (body.length > 0){
-                    String encryptedTaskId = new String(body);
-                    logger.trace("Received acknowledgement: {}", encryptedTaskId);
-                    if (taskShipMap.containsKey(encryptedTaskId)){
-                        String shipId = taskShipMap.get(encryptedTaskId);
-                        taskShipMap.remove(encryptedTaskId);
-                        try {
-                            stop = sendData(shipId);
-                        }
-                        catch (Exception e){
-                            logger.error("Failed to send data: {}", e.getMessage());
-                        }
-                    }
 
-                }
-                //stop = sendData(null);
-            }
-            return "";
-        };
 
         initData();
 
@@ -166,9 +143,9 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
         //String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
         Utils utils = new Utils(this.logger);
-        String[] lines = utils.readFile(Paths.get("data","debs2018_training_fixed_5.csv"), recordsLimit);
+        //String[] lines = utils.readFile(Paths.get("data","debs2018_training_fixed_5.csv"), recordsLimit);
+        String[] lines = utils.readFile(Paths.get("data","debs2018_labeled_v7_test_20.csv"), recordsLimit);
 
-        //String[] lines = Utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
 
         shipTrips = utils.getTripsPerShips(lines);
         int generatorId = getGeneratorId();
@@ -190,20 +167,18 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
     @Override
     public void receiveCommand(byte command, byte[] data) {
-        if (command == Commands.TASK_GENERATOR_START_SIGNAL) {
+        if (command == Commands.TASK_GENERATOR_START_SIGNAL){
             logger.debug("TASK_GENERATOR_START_SIGNAL received");
-
-            if(gerenationStarted)
-                return;
-            gerenationStarted=true;
-            generateData();
+            genStartMutex.release();
         }
+        if (command == SYSTEM_FINISHED_SIGNAL)
+            systemFinishedMutex.release();
         super.receiveCommand(command, data);
     }
 
 
 
-    public void generateData(){
+    public void generateData() throws Exception {
         logger.debug("generateData()");
 
         startTimer();
@@ -211,33 +186,28 @@ public class TaskGenerator extends AbstractTaskGenerator {
         long started = new Date().getTime();
 
         logger.debug("Start sending tuples(" + shipsToSend.size() + " ships)");
-        Future<String> future = threadPool.submit(executionLoop);
-        try {
-            future.get(generationTimeoutMin, TimeUnit.MINUTES);
-            //future.get(10, TimeUnit.SECONDS);
-        } catch (ExecutionException e) {
-            logger.error("RuntimeException: {}", e.getMessage());
-            e.getCause();
-            System.exit(1);
-        } catch (InterruptedException e) {
-            logger.error("InterruptedException: {}", e.getMessage());
-            Thread.currentThread().interrupt();
-            e.getCause();
-            System.exit(1);
-        } catch (TimeoutException e) {
-            Exception e2 = new Exception("Timeout exception: "+ generationTimeoutMin +" min");
-            logger.error(e2.getMessage());
-            System.exit(1);
-        }
 
-        try {
-            sendToCmdQueue(Commands.DATA_GENERATION_FINISHED);
-        } catch (IOException e) {
-            logger.error("Error sending the Commands.DATA_GENERATION_FINISHED command");
-        }
+        Boolean stop = sendData(null);
+        while (!stop){
+            QueueingConsumer.Delivery delivery = exchangeQueueConsumer.nextDelivery();
+            byte[] body = delivery.getBody();
+            if (body.length > 0){
+                String encryptedTaskId = new String(body);
+                logger.trace("Received acknowledgement: {}", encryptedTaskId);
+                if (taskShipMap.containsKey(encryptedTaskId)){
+                    String shipId = taskShipMap.get(encryptedTaskId);
+                    taskShipMap.remove(encryptedTaskId);
+                    try {
+                        stop = sendData(shipId);
+                    }
+                    catch (Exception e){
+                        logger.error("Failed to send data: {}", e.getMessage());
+                    }
+                }
 
-        threadPool.shutdown();
-        timer.cancel();
+            }
+            //stop = sendData(null);
+        }
 
         double took = (new Date().getTime() - started)/1000.0;
         logger.debug("Finished after {} tuples sent. Took {} s. Avg: {} tuples/s", recordsSent, took, Math.round(recordsSent/took));
@@ -245,6 +215,31 @@ public class TaskGenerator extends AbstractTaskGenerator {
         timer.cancel();
 
     }
+
+    @Override
+    public void run() throws Exception {
+        sendToCmdQueue(Commands.TASK_GENERATOR_READY_SIGNAL);
+        genStartMutex.acquire();
+
+        try {
+            generateData();
+        } catch (Exception e) {
+            logger.error("Error while generating data");
+            throw e;
+        }
+
+        sendToCmdQueue(Commands.TASK_GENERATION_FINISHED);
+        systemFinishedMutex.acquire();
+
+        sendExpectationsToStorage();
+        logger.debug("Sending finished commands");
+
+        this.dataGenReceiver.closeWhenFinished();
+        this.sender2System.closeWhenFinished();
+        this.sender2EvalStore.closeWhenFinished();
+    }
+
+
 
 
     private void startTimer(){
@@ -354,8 +349,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
             if (queryType == 2)
                 label += "," + dataPoint.get("arrival_calc");
             expectation = (queryType == 1 ? tripId + "," + orderingIndex + "," + tupleTimestamp + "," : "") + label;
-            sendExpectation(encryptedTaskId, taskSentTimestamp, expectation);
-            //taskExpectations.put(encryptedTaskId, expectation);
+            //sendExpectation(encryptedTaskId, taskSentTimestamp, expectation);
+            taskExpectations.put(encryptedTaskId, expectation);
         }
 
         recordsSent++;
@@ -370,6 +365,26 @@ public class TaskGenerator extends AbstractTaskGenerator {
     private void sendExpectation(String encTaskId, long taskSentTimestamp, String sendToStorage) throws IOException {
         logger.trace("sendTaskToEvalStorage({})=>{}", encTaskId, sendToStorage.getBytes());
         sendTaskToEvalStorage(encTaskId, taskSentTimestamp, sendToStorage.getBytes());
+    }
+
+    public void sendExpectationsToStorage(){
+        logger.debug("sendExpectationsToStorage()");
+        long started = new Date().getTime();
+        for(String shipId : shipTasks.keySet())
+            for(String encryptedTaskId : shipTasks.get(shipId))
+                if(taskExpectations.containsKey(encryptedTaskId)){
+                    try {
+                        sendExpectation(encryptedTaskId, taskSentTimestamps.get(encryptedTaskId), taskExpectations.get(encryptedTaskId));
+                        expectationsSent++;
+                    } catch (IOException e) {
+                        logger.error("Failed to send expectation: {}",e.getMessage());
+                        errors++;
+                    }
+
+                }
+
+        long took = (new Date().getTime() - started);
+        logger.debug("sendExpectationsToStorage({}) took {} s", expectationsSent, (took/1000.00));
     }
 
 }
