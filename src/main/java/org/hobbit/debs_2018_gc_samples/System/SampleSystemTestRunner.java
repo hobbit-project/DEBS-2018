@@ -32,12 +32,19 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
     private CommandQueueListener commandQueueListener;
 
     //Should not be changed, because there images will be called from benchmark-controller
-    String benchmarkImageName = "git.project-hobbit.eu:4567/debs_2018_gc/benchmark-controller";
-    String taskGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/task-generator";
-    String evalStorageImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-storage";
+
+//    String benchmarkImageName = "git.project-hobbit.eu:4567/debs_2018_gc/benchmark-controller";
+//    String taskGeneratorImageName = "git.project-hobbit.eu:4567/debs_2018_gc/task-generator";
+//    String evalStorageImageName = "git.project-hobbit.eu:4567/debs_2018_gc/eval-storage";
+
+    String benchmarkImageName = "git.project-hobbit.eu:4567/smirnp/sml-benchmark-v2/benchmark-controller";
+    String taskGeneratorImageName = "git.project-hobbit.eu:4567/smirnp/sml-benchmark-v2/task-generator";
+    String evalStorageImageName = "git.project-hobbit.eu:4567/smirnp/sml-benchmark-v2/eval-storage";
+
 
     SystemAdapterDockerBuilder systemAdapterBuilder;
     BenchmarkDockerBuilder benchmarkDockerBuilder;
+    TaskGenDockerBuilder taskGenDockerBuilder;
     EvalStorageDockerBuilder evalStorageDockerBuilder;
 
     String systemImageName;
@@ -65,7 +72,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
         Boolean skipLogsReading = false;
         benchmarkDockerBuilder = new BenchmarkDockerBuilder(new PullBasedDockersBuilder(benchmarkImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
-        //dataGenDockerBuilder = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
+        taskGenDockerBuilder = new  TaskGenDockerBuilder(new PullBasedDockersBuilder(taskGeneratorImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
         evalStorageDockerBuilder = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
 
         systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages).useCachedContainer(false));
@@ -102,7 +109,8 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
 
         Component benchmarkController = benchmarkDockerBuilder.build();
-        Component taskGen  = new TaskGenerator();
+        //Component taskGen  = new TaskGenerator();
+        Component taskGen  = taskGenDockerBuilder.build();
         Component evalStorage = evalStorageDockerBuilder.build();
 
         Component systemAdapter = new SystemAdapter();
@@ -150,7 +158,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     public static String createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(TUPLES_LIMIT, 1000);
+        //kv.setValue(TUPLES_LIMIT, 1000);
         kv.setValue(BENCHMARK_TIMEOUT_MIN , 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv.encodeToString();
