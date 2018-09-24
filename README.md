@@ -1,6 +1,6 @@
 # DEBS Grand Challenge 2018
 
-Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the [DEBS Grand Challenge 2018](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). The benchmark itself is [here](https://github.com/hobbit-project/sml-benchmark-v2).
+Here you can find some helpful sourcecodes which should ease your integration into the HOBBIT platform and participation in the [DEBS Grand Challenge 2018](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). 
 
 The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java-sdk) and should allow challenge participants to debug their systems using benchmark workload locally without having a running platform instance. 
 The benchmarking system can be tested as pure java code or/and being packed (automatically, by demand) into docker image. 
@@ -11,6 +11,8 @@ The reposity containts the following components:
 - Task generator  
 - Sample system
 - Sample system test
+
+The benchmark itself is [here](https://github.com/hobbit-project/sml-benchmark-v2).
 
 The DEBS GC 2018 benchmark will send a stream of tuples to the benchmarking system and expects responces (predictions) from the system to be ranked by [defined KPIs](http://www.cs.otago.ac.nz/debs2018/calls/gc.html). Each next data tuple for each particular ship can be received by the system only if the responce (prediction) for the previous tuple for this ship was sent from the system to the evaluation storage, which acknowdleges data generator. A simplified version of data generator is included to the repository to allow participants to get the stream of training data directly to the sample system. A simplified versions of any other benchmark components (benchmark controller, task generator, evaluatuion storage, evaluation module) required for local debugging will be automatically downloaded as docker images by the docker software. 
 
