@@ -6,6 +6,10 @@ The sourcecodes use the [HOBBIT Java SDK](https://github.com/hobbit-project/java
 The benchmarking system can be tested as pure java code or/and being packed (automatically, by demand) into docker image. 
 Finally the docker image of the system may be uploaded into the [HOBBIT online platform](http://master.project-hobbit.eu) (as described [here](https://github.com/hobbit-project/platform/wiki/Push-a-docker-image) and [here](https://github.com/hobbit-project/platform/wiki/System-meta-data-file)) and executed there under the online [DEBS GC 2018 benchmark](https://github.com/hobbit-project/sml-benchmark-v2), which will be used for the challenge.
 
+# Dataset
+
+The datasets can be requested [here] (https://www.marinetraffic.com/research/open-research-maritime-vessel-tracking-dataset/).
+
 # Benchmark description
 The reposity containts the following components:
 - Task generator  
