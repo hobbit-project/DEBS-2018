@@ -8,7 +8,7 @@ Finally the docker image of the system may be uploaded into the [HOBBIT online p
 
 # Dataset
 
-The datasets can be requested [here] (https://www.marinetraffic.com/research/open-research-maritime-vessel-tracking-dataset/).
+The datasets can be requested [here](https://www.marinetraffic.com/research/open-research-maritime-vessel-tracking-dataset/).
 
 # Benchmark description
 The reposity containts the following components:
